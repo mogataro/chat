@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "node websocket-server.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "ws": "^8.18.0"
+  }
+}

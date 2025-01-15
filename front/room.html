@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>チャット</title>
+  <link rel="stylesheet" href="reset.css" type="text/css" />
+  <link rel="stylesheet" href="room.css" type="text/css" />
+  <link rel="stylesheet" href="message.css" type="text/css" />
+  <!-- dayjs -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+</head>
+
+<body>
+  <div class="room">
+    <header class="room__header">
+      <h1 class="room__title">チャットルーム</h1>
+      <div class="room__info">
+        <span class="room__channel">チャンネル:</span>
+        <span class="room__uuid">ID:</span>
+      </div>
+    </header>
+    <div class="room__message-list" id="chat"></div>
+    <form method="GET" class="room__footer" onsubmit="sendMessage();return false;">
+      <input class="room__input" type="text" id="msgInput" placeholder="メッセージを入力" />
+      <button type="submit" class="room__button">送信</button>
+    </form>
+  </div>
+  <script type="text/javascript" src="room.js"></script>
+</body>
+
+</html>

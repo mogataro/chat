@@ -1,0 +1,77 @@
+@charset "utf-8";
+
+html {
+  font-size: 16px;
+}
+
+.room {
+  height: 100vh;
+  padding: 0;
+  background: #7494c0;
+  overflow: hidden;
+  max-width: 400px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.room__header {
+  display: flex;
+  align-items: center;
+  background: #273246;
+  padding: 10px 20px;
+  color: #ffffff;
+}
+
+.room__title {
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.room__info {
+  display: flex;
+  flex-direction: column;
+  margin-block: auto;
+  margin-left: auto;
+  max-width: 150px;
+}
+
+.room__uuid {
+  overflow: hidden;     
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room__message-list {
+  flex-grow: 1;
+  padding: 10px;
+  overflow: hidden;
+  line-height: 135%;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.room__footer {
+  background: #dbdde1;
+  padding: 10px;
+  display: flex;
+  column-gap: 10px;
+  .room__input {
+    flex-grow: 1;
+    padding: 5px;
+    border-radius: 10px;
+    border-style: none;
+    background: #ffffff;
+  }
+  .room__button {
+    border-radius: 5px;
+    border-style: none;
+    background: #ffffff;
+    color: #273246;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}

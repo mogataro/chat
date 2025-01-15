@@ -1,0 +1,17 @@
+services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      # - ./nginx.conf:/etc/nginx.conf:ro
+      - ./front:/usr/share/nginx/html
+    ports:
+      - 80:80
+  back:
+    image: node:20.17.0-bookworm-slim
+    working_dir: /back
+    volumes:
+      - ./back:/back:cached
+    command: npm run start
+    ports:
+      - 8000:8000
+    tty: true

@@ -7,20 +7,19 @@
   margin: 0;
   padding: 10px;
   border-radius: 10px 10px 10px 0px;
-  background-color: #ffffff;
+  background-color: var(--color-white);
 }
 .message__info {
   display: flex;
   column-gap: 10px;
   font-size: 0.8rem;
-  color: #ffffff;
+  color: var(--color-white);
 }
 .message--mine {
   align-items: flex-end;
   margin-left: auto;
   .message__text {
     border-radius: 10px 10px 0px 10px;
-    background-color: #8de055;
   }
   .message__info {
     justify-content: flex-end;

@@ -1,26 +1,18 @@
 @charset "utf-8";
 
-html {
-  font-size: 16px;
-}
-
-.room {
-  height: 100vh;
-  padding: 0;
-  background: #7494c0;
-  overflow: hidden;
-  max-width: 400px;
-  margin-inline: auto;
+.room__inner {
+  overflow-y: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--color-primary);
 }
 
 .room__header {
   display: flex;
   align-items: center;
-  background: #273246;
+  background: var(--color-primary-variant);
   padding: 10px 20px;
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 .room__title {
@@ -33,7 +25,7 @@ html {
   flex-direction: column;
   margin-block: auto;
   margin-left: auto;
-  max-width: 150px;
+  width: 40%;
 }
 
 .room__uuid {
@@ -54,24 +46,11 @@ html {
 }
 
 .room__footer {
-  background: #dbdde1;
+  background: var(--color-gray);
   padding: 10px;
   display: flex;
   column-gap: 10px;
   .room__input {
     flex-grow: 1;
-    padding: 5px;
-    border-radius: 10px;
-    border-style: none;
-    background: #ffffff;
-  }
-  .room__button {
-    border-radius: 5px;
-    border-style: none;
-    background: #ffffff;
-    color: #273246;
-    &:hover {
-      opacity: 0.8;
-    }
   }
 }

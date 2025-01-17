@@ -1,5 +1,5 @@
 services:
-  nginx:
+  front:
     image: nginx:latest
     volumes:
       # - ./nginx.conf:/etc/nginx.conf:ro

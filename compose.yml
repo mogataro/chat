@@ -5,7 +5,7 @@ services:
       - ./front:/usr/share/nginx/html
     ports:
       - 80:80
-  back:
+  back: &back
     image: node:20.17.0-bookworm-slim
     working_dir: /back
     volumes:
@@ -14,3 +14,11 @@ services:
     ports:
       - 8000:8000
     tty: true
+
+  setup:
+    image: busybox
+    depends_on:
+      - setup-node_module
+  setup-node_module:
+    <<: *back
+    command: npm ci

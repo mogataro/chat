@@ -2,7 +2,6 @@ services:
   front:
     image: nginx:latest
     volumes:
-      # - ./nginx.conf:/etc/nginx.conf:ro
       - ./front:/usr/share/nginx/html
     ports:
       - 80:80

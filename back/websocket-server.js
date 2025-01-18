@@ -26,6 +26,7 @@ const clients = {};
  * @property {string} name
  * @property {string} message
  * @property {boolean} mine
+ * @property {dayjs.Dayjs|null} time
  */
 
 /**
@@ -51,11 +52,13 @@ wss.on('connection', (ws) => {
     name: '',
     message: '',
     mine: false,
+    time: null,
   };
   ws.send(JSON.stringify(initSendMessageJson));
 
   // メッセージ受信処理
   ws.on('message', (data) => {
+    /** @type {ReceivedMessageJson} */
     const json = JSON.parse(data);
     json.channel = json?.channel ? xss(json.channel) : '';
     json.uuid = json?.uuid ? xss(json.uuid) : '';
@@ -67,7 +70,6 @@ wss.on('connection', (ws) => {
     }
 
     if (!json?.message) return;
-    json.time = dayjs();
 
     const targetChannel = json.channel;
     if (!!targetChannel) {
@@ -102,7 +104,9 @@ function sendMessageToChannel(targetChannel, receivedMessageJson, ws) {
       /** @type {SendMessageJson} */
       const sendMessageJson = {
         ...receivedMessageJson,
+        name: receivedMessageJson.name.substring(0, 10),
         mine: ws === client,
+        time: dayjs(),
       };
       client.send(JSON.stringify(sendMessageJson));
     }

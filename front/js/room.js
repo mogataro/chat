@@ -5,13 +5,14 @@ let channel = '';
 let userName = '';
 
 document.addEventListener('DOMContentLoaded', () => {
-  const queryParams = new URLSearchParams(window.location.search);
-  channel = queryParams.get('channel');
-  userName = queryParams.get('name') || '名無し';
+  setUserNameAndChannel();
 
   // ヘッダーにチャンネル番号を表示
   const roomChannelElement = document.querySelector('.room__channel');
   if (!!roomChannelElement) roomChannelElement.textContent += channel;
+  // ヘッダーに名前を表示
+  const roomNameElement = document.querySelector('.room__name');
+  if (!!roomNameElement) roomNameElement.textContent += userName;
 });
 
 /**
@@ -75,6 +76,7 @@ function sendMessage() {
  * @property {string} name
  * @property {string} message
  * @property {boolean} mine
+ * @property {dayjs.Dayjs|null} time
  */
 
 /**
@@ -94,7 +96,7 @@ function createMessage(json) {
   textElement.textContent = json.message;
   sideElement.appendChild(sideTextElement);
   sideTextElement.appendChild(textElement);
-  nameElement.textContent = json.name;
+  nameElement.textContent = `${json.name}(${json.uuid})`;
   timeElement.textContent = dayjs(json.time).format('M/D HH:mm');
   infoElement.appendChild(nameElement);
   infoElement.appendChild(timeElement);
@@ -111,4 +113,34 @@ function createDiv(className) {
   const element = document.createElement('div');
   element.className = className;
   return element;
+}
+
+/**
+ * userNameとチャンネルをsetする。
+ * 不正なチャンネルはログインページに戻す
+ * @returns {undefined}
+ */
+function setUserNameAndChannel() {
+  const searchParams = new URLSearchParams(window.location.search);
+  let tempUserName = searchParams.get('name') || '名無し';
+  let tempChannel = searchParams.get('channel');
+  const tempNumberChannel = Number(tempChannel);
+
+  if (
+    tempNumberChannel < 0 ||
+    tempNumberChannel > 99999 ||
+    Number.isNaN(tempNumberChannel)
+  ) {
+    window.location.href = '/index.html';
+    return;
+  }
+
+  if (tempUserName.length > 10) {
+    tempUserName = tempUserName.substring(0, 10);
+    searchParams.set('name', tempUserName);
+    window.location.search = searchParams.toString();
+  }
+
+  userName = tempUserName;
+  channel = tempChannel;
 }

@@ -15,24 +15,38 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * @typedef {Object} SendMessageJson
+ * @property {boolean} init
+ * @property {string} uuid
+ * @property {string} channel
+ * @property {string} name
+ * @property {string} message
+ */
+
+/**
  * メッセージ受信処理
  */
 ws.onmessage = function (event) {
   const json = JSON.parse(event.data);
   if (json?.init) {
     uuid = json.uuid;
-    ws.send(JSON.stringify({
+    /** @type {SendMessageJson} */
+    const messageJson = {
       init: true,
       uuid,
       channel,
       name: userName,
-    }));
+      message: '',
+    };
+    ws.send(JSON.stringify(messageJson));
 
     const roomUuidElement = document.querySelector('.room__uuid');
     if (!!roomUuidElement) roomUuidElement.textContent += uuid;
-  } else {
+  } else if (json.hasOwnProperty('mine')) {
     const chatDiv = document.getElementById('chat');
-    chatDiv.appendChild(createMessage(json));
+    /** @type {ReceivedMessageJson} */
+    const receivedMessageJson = json;
+    chatDiv.appendChild(createMessage(receivedMessageJson));
     chatDiv.scrollTo(0, chatDiv.scrollHeight);
   }
 };
@@ -41,19 +55,31 @@ ws.onmessage = function (event) {
  * メッセージ送信
  */
 function sendMessage() {
-  const json = {
+  /** @type {SendMessageJson} */
+  const messageJson = {
+    init: false,
     uuid,
     channel,
     name: userName,
     message: document.getElementById('messageInput').value,
   };
-  ws.send(JSON.stringify(json));
+  ws.send(JSON.stringify(messageJson));
   document.getElementById('messageInput').value = '';
 }
 
 /**
+ * @typedef {Object} ReceivedMessageJson
+ * @property {boolean} init
+ * @property {string} uuid
+ * @property {string} channel
+ * @property {string} name
+ * @property {string} message
+ * @property {boolean} mine
+ */
+
+/**
  * メッセージを表示するHTML要素を返却
- * @param {Object} json
+ * @param {ReceivedMessageJson} json
  * @returns {HTMLDivElement}
  */
 function createMessage(json) {

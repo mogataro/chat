@@ -10,13 +10,32 @@ const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
 /**
- * @typedef {Object} clientInfo
+ * @typedef {Object} ClientInfo
  * @property {WebSocket} ws
  * @property {string} channel
  */
 
-/** @type {Record<string, clientInfo>} - uuidをキーに持つ */
-const clients = {}
+/** @type {Record<string, ClientInfo>} - uuidをキーに持つ */
+const clients = {};
+
+/**
+ * @typedef {Object} SendMessageJson
+ * @property {boolean} init
+ * @property {string} uuid
+ * @property {string} channel
+ * @property {string} name
+ * @property {string} message
+ * @property {boolean} mine
+ */
+
+/**
+ * @typedef {Object} ReceivedMessageJson
+ * @property {boolean} init
+ * @property {string} uuid
+ * @property {string} channel
+ * @property {string} name
+ * @property {string} message
+ */
 
 // WebSocket接続, ws が接続したクライアント
 wss.on('connection', (ws) => {
@@ -24,7 +43,16 @@ wss.on('connection', (ws) => {
   const uuid = getRandomString();
 
   clients[uuid] = { ws };
-  ws.send(JSON.stringify({ uuid, init: true }));
+  /** @type {SendMessageJson} */
+  const initSendMessageJson = {
+    init: true,
+    uuid,
+    channel: '',
+    name: '',
+    message: '',
+    mine: false,
+  };
+  ws.send(JSON.stringify(initSendMessageJson));
 
   // メッセージ受信処理
   ws.on('message', (data) => {

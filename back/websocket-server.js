@@ -9,20 +9,6 @@ const xss = require('xss');
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
-server.on('request', doRequest);
-
-function doRequest(req, res) {
-  switch (req.method) {
-    case 'GET':
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.write('websocket-server');
-      res.end();
-      break;
-    case 'POST':
-      break;
-  }
-}
-
 /**
  * @typedef {Object} clientInfo
  * @property {WebSocket} ws

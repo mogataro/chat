@@ -20,8 +20,17 @@
   padding-bottom: 10px;
 }
 
+.room__header-col {
+  display: flex;
+  align-items: center;
+}
+
 .room__title {
   text-align: center;
+  font-size: 1.5rem;
+}
+
+.room__number-in-channel {
   font-size: 1.5rem;
 }
 

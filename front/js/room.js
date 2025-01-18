@@ -28,24 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
  * メッセージ受信処理
  */
 ws.onmessage = function (event) {
+  /** @type {ReceivedMessageJson} */
   const json = JSON.parse(event.data);
-  if (json?.init) {
+  if (json?.init === true) {
     uuid = json.uuid;
-    /** @type {SendMessageJson} */
-    const messageJson = {
-      init: true,
-      uuid,
-      channel,
-      name: userName,
-      message: '',
-    };
-    ws.send(JSON.stringify(messageJson));
+
+    sendInitMessage();
 
     const roomUuidElement = document.querySelector('.room__uuid');
     if (!!roomUuidElement) roomUuidElement.textContent += uuid;
-  } else if (json.hasOwnProperty('mine')) {
+  } else {
     const chatDiv = document.getElementById('chat');
-    /** @type {ReceivedMessageJson} */
     const receivedMessageJson = json;
     chatDiv.appendChild(createMessage(receivedMessageJson));
     chatDiv.scrollTo(0, chatDiv.scrollHeight);
@@ -53,7 +46,23 @@ ws.onmessage = function (event) {
 };
 
 /**
- * メッセージ送信
+ * channelとname情報メッセージを送る
+ * 初回コネクト時に実行する
+ */
+function sendInitMessage() {
+  /** @type {SendMessageJson} */
+  const messageJson = {
+    init: true,
+    uuid,
+    channel,
+    name: userName,
+    message: '',
+  };
+  ws.send(JSON.stringify(messageJson));
+}
+
+/**
+ * 入力メッセージ送信
  */
 function sendMessage() {
   /** @type {SendMessageJson} */
@@ -75,7 +84,7 @@ function sendMessage() {
  * @property {string} channel
  * @property {string} name
  * @property {string} message
- * @property {boolean} mine
+ * @property {'mine'|'other'|'info'} type
  * @property {dayjs.Dayjs|null} time
  */
 
@@ -85,23 +94,46 @@ function sendMessage() {
  * @returns {HTMLDivElement}
  */
 function createMessage(json) {
-  const side = json.mine ? 'message--mine' : 'message--other';
-  const sideElement = createDiv(`message ${side}`);
-  const sideTextElement = createDiv('message__inner');
+  const messageModifier = getMessageModifier(json.type);
+  const messageElement = createDiv(`message ${messageModifier}`);
+  const messageInnerElement = createDiv('message__inner');
   const textElement = createDiv('message__text');
   const nameElement = createDiv('message__name');
   const timeElement = createDiv('message__time');
-  const infoElement = createDiv('message__info');
+  const belowTextElement = createDiv('message__below-text');
+
+  messageElement.appendChild(messageInnerElement);
+  messageInnerElement.appendChild(textElement);
+  belowTextElement.appendChild(nameElement);
+  belowTextElement.appendChild(timeElement);
+  messageInnerElement.appendChild(belowTextElement);
 
   textElement.textContent = json.message;
-  sideElement.appendChild(sideTextElement);
-  sideTextElement.appendChild(textElement);
-  nameElement.textContent = `${json.name}(${json.uuid})`;
+  nameElement.textContent = json.uuid
+    ? `${json.name}(${json.uuid})`
+    : json.name;
   timeElement.textContent = dayjs(json.time).format('M/D HH:mm');
-  infoElement.appendChild(nameElement);
-  infoElement.appendChild(timeElement);
-  sideTextElement.appendChild(infoElement);
-  return sideElement;
+
+  return messageElement;
+}
+
+/**
+ * messageクラスのモディファイアを返却する
+ * @param {'mine'|'other'|'info'} type
+ * @returns
+ */
+function getMessageModifier(type) {
+  // NOTE: モディファイアクラス名がどこで指定されているのか検索できるように、変数(type)を連結せずに記述している
+  switch (type) {
+    case 'mine':
+      return 'message--mine';
+    case 'other':
+      return 'message--other';
+    case 'info':
+      return 'message--info';
+    default:
+      return '';
+  }
 }
 
 /**

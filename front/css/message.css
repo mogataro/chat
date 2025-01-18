@@ -2,26 +2,47 @@
 
 .message {
   width: 80%;
+
+  &.message--mine {
+    align-items: flex-end;
+    margin-left: auto;
+  }
+
+  &.message--info {
+    align-items: center;
+    margin-inline: auto;
+  }
 }
 .message__text {
   margin: 0;
   padding: 10px;
-  border-radius: 10px 10px 10px 0px;
   background-color: var(--color-white);
+
+  .message--mine & {
+    border-radius: 10px 10px 0px 10px;
+  }
+  .message--other & {
+    border-radius: 10px 10px 10px 0px;
+  }
+  .message--info & {
+    border-radius: 10px;
+    text-align: center;
+  }
 }
-.message__info {
+.message__below-text {
   display: flex;
+  -moz-column-gap: 10px;
   column-gap: 10px;
   font-size: 0.8rem;
   color: var(--color-white);
-}
-.message--mine {
-  align-items: flex-end;
-  margin-left: auto;
-  .message__text {
-    border-radius: 10px 10px 0px 10px;
+
+  .message--mine & {
+    justify-content: flex-end;
   }
-  .message__info {
+  .message--other & {
+    justify-content: flex-start;
+  }
+  .message--info & {
     justify-content: flex-end;
   }
 }

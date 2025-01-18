@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
   <meta name="description" content="チャットルームにログイン">
   <title>チャット | ログイン</title>
   <link rel="stylesheet" href="css/reset.css" type="text/css" />
@@ -19,9 +20,9 @@
           <fieldset class="login__fieldset">
             <legend class="visually-hidden">Login</legend>
             <div class="login__form-block">
-              <label class="login__form-label" for="name">ニックネーム</label>
+              <label class="login__form-label" for="name">名前(10文字まで)</label>
               <input id="name" class="login__form-input text-form" type="text" name="name" placeholder="名無し"
-                autocapitalize="off" autocorrect="off" spellcheck="false">
+                autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="10">
             </div>
             <div class="login__form-block">
               <label class="login__form-label" for="channel">チャンネル(必須 最大5桁の数字)</label>
@@ -36,7 +37,6 @@
       </div>
     </div>
   </div>
-  <script type="text/javascript" src="index.js"></script>
 </body>
 
 </html>

@@ -28,12 +28,6 @@
   width: 40%;
 }
 
-.room__uuid {
-  overflow: hidden;     
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .room__message-list {
   flex-grow: 1;
   padding: 10px;

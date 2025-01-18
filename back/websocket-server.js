@@ -26,7 +26,7 @@ const clients = {};
  * @property {string} channel
  * @property {string} name
  * @property {string} message
- * @property {'mine'|'other'|'info'} type
+ * @property {'mine'|'other'|'info'|'admin_number-in-channel'} type
  * @property {dayjs.Dayjs|null} time
  */
 
@@ -69,6 +69,7 @@ wss.on('connection', (ws) => {
       clients[json.uuid].name = json.name; // clientにnameプロパティ追加
       clients[json.uuid].channel = json.channel; // clientにchannelプロパティ追加
       sendLoginOrLogoutMessage(uuid, 'login');
+      sendNumberInChannelAdminMessage(json.channel, 'login');
       return;
     }
 
@@ -80,6 +81,7 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     sendLoginOrLogoutMessage(uuid, 'logout');
+    sendNumberInChannelAdminMessage(clients[uuid].channel, 'logout');
     delete clients[uuid];
   });
 });
@@ -125,13 +127,13 @@ function sendInitMessage(uuid) {
 /**
  * 入室/退室メッセージを送信
  * @param {string} uuid
- * @param {'login'|'logout'} type
+ * @param {'login'|'logout'} mode
  * @returns {false}
  */
-function sendLoginOrLogoutMessage(uuid, type) {
+function sendLoginOrLogoutMessage(uuid, mode) {
   const clientsInChannel = getClientsInChannel(clients[uuid].channel);
 
-  const doing = type === 'login' ? '入室' : '退室';
+  const doing = mode === 'login' ? '入室' : '退室';
 
   clientsInChannel.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -169,6 +171,37 @@ function sendMessageToChannel(receivedMessageJson, ws) {
         name: receivedMessageJson.name.substring(0, 10),
         type: ws === client ? 'mine' : 'other',
         time: dayjs(),
+      };
+      client.send(JSON.stringify(sendMessageJson));
+    }
+  });
+}
+
+/**
+ * チャンネルにいる人数を管理メッセージで送信
+ * @param {string} channel
+ * @oaram {'login'|'logout'} mode
+ * @returns {undefined}
+ */
+function sendNumberInChannelAdminMessage(channel, mode) {
+  /** @type {string[]} メッセージ送信者と同じチャンネルにいるクライアントのuuid配列 */
+  const clientsInChannel = getClientsInChannel(channel);
+  const numberInChannel =
+    mode === 'login'
+      ? String(clientsInChannel.length)
+      : String(clientsInChannel.length - 1);
+
+  clientsInChannel.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      /** @type {SendMessageJson} */
+      const sendMessageJson = {
+        init: false,
+        uuid: '',
+        channel: '',
+        name: '',
+        message: numberInChannel,
+        type: 'admin_number-in-channel',
+        time: '',
       };
       client.send(JSON.stringify(sendMessageJson));
     }

@@ -24,10 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
  * @property {string} message
  */
 
+ws.onmessage = onMessage;
 /**
  * メッセージ受信処理
+ * @param {MessageEvent} event
+ * @returns {undefined}
  */
-ws.onmessage = function (event) {
+function onMessage(event) {
   /** @type {ReceivedMessageJson} */
   const json = JSON.parse(event.data);
   if (json?.init === true) {
@@ -37,13 +40,21 @@ ws.onmessage = function (event) {
 
     const roomUuidElement = document.querySelector('.room__uuid');
     if (!!roomUuidElement) roomUuidElement.textContent += uuid;
-  } else {
-    const chatDiv = document.getElementById('chat');
-    const receivedMessageJson = json;
-    chatDiv.appendChild(createMessage(receivedMessageJson));
-    chatDiv.scrollTo(0, chatDiv.scrollHeight);
+    return;
   }
-};
+  if (json?.type === 'admin_number-in-channel') {
+    const channelInChannelDiv = document.querySelector(
+      '.room__number-in-channel'
+    );
+    channelInChannelDiv.textContent = `(${json.message}人)`;
+    return;
+  }
+  const chatDiv = document.getElementById('chat');
+  const receivedMessageJson = json;
+  chatDiv.appendChild(createMessage(receivedMessageJson));
+  chatDiv.scrollTo(0, chatDiv.scrollHeight);
+  return;
+}
 
 /**
  * channelとname情報メッセージを送る
@@ -84,7 +95,7 @@ function sendMessage() {
  * @property {string} channel
  * @property {string} name
  * @property {string} message
- * @property {'mine'|'other'|'info'} type
+ * @property {'mine'|'other'|'info'|'admin'} type
  * @property {dayjs.Dayjs|null} time
  */
 
@@ -120,7 +131,7 @@ function createMessage(json) {
 /**
  * messageクラスのモディファイアを返却する
  * @param {'mine'|'other'|'info'} type
- * @returns
+ * @returns {''|'message--mine'|'message--other'|'message--info'}
  */
 function getMessageModifier(type) {
   // NOTE: モディファイアクラス名がどこで指定されているのか検索できるように、変数(type)を連結せずに記述している
@@ -139,7 +150,7 @@ function getMessageModifier(type) {
 /**
  * 引数のクラス名を持つdiv要素を生成
  * @param {string} classNames
- * @returns
+ * @returns {HTMLDivElement}
  */
 function createDiv(className) {
   const element = document.createElement('div');

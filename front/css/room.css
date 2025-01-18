@@ -8,11 +8,16 @@
 }
 
 .room__header {
+  padding: 20px 10px;
+  background: var(--color-primary-variant);
+  color: var(--color-white);
+}
+
+.room__header-row {
   display: flex;
   align-items: center;
-  background: var(--color-primary-variant);
-  padding: 10px 20px;
-  color: var(--color-white);
+  justify-content: space-between;
+  padding-bottom: 10px;
 }
 
 .room__title {
@@ -22,10 +27,17 @@
 
 .room__info {
   display: flex;
-  flex-direction: column;
-  margin-block: auto;
-  margin-left: auto;
-  width: 40%;
+  margin-inline: auto;
+  padding: 0;
+  margin: 0;
+  -moz-column-gap: 5px;
+  column-gap: 5px;
+}
+
+.room__channel,
+.room__name,
+.room__uuid {
+  list-style: none;
 }
 
 .room__message-list {
@@ -43,6 +55,7 @@
   background: var(--color-gray);
   padding: 10px;
   display: flex;
+  -moz-column-gap: 10px;
   column-gap: 10px;
   .room__input {
     flex-grow: 1;

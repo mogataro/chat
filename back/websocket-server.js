@@ -13,6 +13,7 @@ const wss = new WebSocket.Server({ server });
  * @typedef {Object} ClientInfo
  * @property {WebSocket} ws
  * @property {string} channel
+ * @property {string} name
  */
 
 /** @type {Record<string, ClientInfo>} - uuidをキーに持つ */
@@ -25,7 +26,7 @@ const clients = {};
  * @property {string} channel
  * @property {string} name
  * @property {string} message
- * @property {boolean} mine
+ * @property {'mine'|'other'|'info'} type
  * @property {dayjs.Dayjs|null} time
  */
 
@@ -40,10 +41,74 @@ const clients = {};
 
 // WebSocket接続, ws が接続したクライアント
 wss.on('connection', (ws) => {
-  // クライアント識別子
-  const uuid = getRandomString();
+  // クライアント識別子(ID)
+  const uuid = getRandomId();
 
-  clients[uuid] = { ws };
+  // 既に同じuuidを持つユーザがいた場合
+  if (Object.keys(clients).some((clientId) => clientId === uuid)) {
+    sendFailedGetIdMessage(ws);
+    return;
+  }
+
+  clients[uuid] = {}; // clientsにclientプロパティ追加
+  clients[uuid].ws = ws; // clientにwsプロパティ追加
+
+  sendInitMessage(uuid);
+
+  // メッセージ受信処理
+  ws.on('message', (data) => {
+    /** @type {ReceivedMessageJson} */
+    const json = JSON.parse(data);
+    json.name =
+      typeof json?.name === 'string' ? json.name.substring(0, 10) : '名無し';
+    json.channel = json?.channel ? xss(json.channel) : '';
+    json.uuid = json?.uuid ? xss(json.uuid) : '';
+
+    // 初回コネクト時にクライアントから送られるメッセージの場合
+    if (json?.init === true && json.channel && json.uuid) {
+      clients[json.uuid].name = json.name; // clientにnameプロパティ追加
+      clients[json.uuid].channel = json.channel; // clientにchannelプロパティ追加
+      sendLoginOrLogoutMessage(uuid, 'login');
+      return;
+    }
+
+    // 同じチャンネルにいるユーザにメッセージ送信
+    if (!!json.channel && typeof json?.message === 'string') {
+      sendMessageToChannel(json, ws);
+    }
+  });
+
+  ws.on('close', () => {
+    sendLoginOrLogoutMessage(uuid, 'logout');
+    delete clients[uuid];
+  });
+});
+
+/**
+ * 接続ユーザに対して、ID取得失敗メッセージを送信
+ * @param {WebSocket} ws
+ * @returns {false}
+ */
+function sendFailedGetIdMessage(ws) {
+  /** @type {SendMessageJson} */
+  const messageJson = {
+    init: false,
+    uuid: '',
+    channel: '',
+    name: 'システム通知',
+    message: 'IDの取得に失敗しました。ページを更新して下さい。',
+    type: 'info',
+    time: dayjs(),
+  };
+  ws.send(JSON.stringify(messageJson));
+}
+
+/**
+ * 接続ユーザに対してuuidを送る
+ * @param {string} uuid
+ * @returns {false}
+ */
+function sendInitMessage(uuid) {
   /** @type {SendMessageJson} */
   const initSendMessageJson = {
     init: true,
@@ -51,61 +116,33 @@ wss.on('connection', (ws) => {
     channel: '',
     name: '',
     message: '',
-    mine: false,
+    type: 'info',
     time: null,
   };
-  ws.send(JSON.stringify(initSendMessageJson));
-
-  // メッセージ受信処理
-  ws.on('message', (data) => {
-    /** @type {ReceivedMessageJson} */
-    const json = JSON.parse(data);
-    json.channel = json?.channel ? xss(json.channel) : '';
-    json.uuid = json?.uuid ? xss(json.uuid) : '';
-
-    // 初回コネクト時にクライアントから送られるメッセージの場合
-    if (json?.init === true && json.channel && json.uuid) {
-      clients[json.uuid].channel = json.channel;
-      return;
-    }
-
-    if (!json?.message) return;
-
-    const targetChannel = json.channel;
-    if (!!targetChannel) {
-      sendMessageToChannel(targetChannel, json, ws);
-    }
-  });
-
-  ws.on('close', () => {
-    delete clients[uuid];
-  });
-});
+  clients[uuid].ws.send(JSON.stringify(initSendMessageJson));
+}
 
 /**
- * 引数のチャンネルにいるユーザーに受信したメッセージを送信
- * @param {string} targetChannel
- * @param {ReceivedMessageJson} receivedMessageJson - 受信メッセージ
- * @param {WebSocket} ws
- * @returns {undefined}
+ * 入室/退室メッセージを送信
+ * @param {string} uuid
+ * @param {'login'|'logout'} type
+ * @returns {false}
  */
-function sendMessageToChannel(targetChannel, receivedMessageJson, ws) {
-  /** @type {string[]} メッセージ送信者と同じチャンネルにいるクライアントのuuid配列 */
-  const clientsInChannel = Object.entries(clients)
-    .filter((clientArray) => {
-      if (!targetChannel || !clientArray[1] || !clientArray[1]?.channel)
-        return false;
-      return clientArray[1].channel === targetChannel;
-    })
-    .map((clientArray) => clientArray[1].ws);
+function sendLoginOrLogoutMessage(uuid, type) {
+  const clientsInChannel = getClientsInChannel(clients[uuid].channel);
+
+  const doing = type === 'login' ? '入室' : '退室';
 
   clientsInChannel.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       /** @type {SendMessageJson} */
       const sendMessageJson = {
-        ...receivedMessageJson,
-        name: receivedMessageJson.name.substring(0, 10),
-        mine: ws === client,
+        init: false,
+        uuid: '',
+        channel: '',
+        name: 'システム通知',
+        message: `${clients[uuid].name}さん(${uuid})が${doing}しました！`,
+        type: 'info',
         time: dayjs(),
       };
       client.send(JSON.stringify(sendMessageJson));
@@ -114,15 +151,58 @@ function sendMessageToChannel(targetChannel, receivedMessageJson, ws) {
 }
 
 /**
- * ランダム文字列を返却
+ * 引数のチャンネルにいるユーザーに受信したメッセージを送信
+ * @param {ReceivedMessageJson} receivedMessageJson - 受信メッセージ
+ * @param {WebSocket} ws
+ * @returns {undefined}
+ */
+function sendMessageToChannel(receivedMessageJson, ws) {
+  /** @type {string[]} メッセージ送信者と同じチャンネルにいるクライアントのuuid配列 */
+  const clientsInChannel = getClientsInChannel(receivedMessageJson.channel);
+
+  clientsInChannel.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      /** @type {SendMessageJson} */
+      const sendMessageJson = {
+        ...receivedMessageJson,
+        init: false,
+        name: receivedMessageJson.name.substring(0, 10),
+        type: ws === client ? 'mine' : 'other',
+        time: dayjs(),
+      };
+      client.send(JSON.stringify(sendMessageJson));
+    }
+  });
+}
+
+/**
+ * チャンネルにいるクライアントのuuid配列
+ * @param {string} channel
+ * @returns {string[]}
+ */
+function getClientsInChannel(channel) {
+  if (!channel) {
+    return [];
+  }
+  return Object.entries(clients)
+    .filter((clientArray) => {
+      if (!clientArray[1] || !clientArray[1]?.channel) return false;
+      return clientArray[1].channel === channel;
+    })
+    .map((clientArray) => clientArray[1].ws);
+}
+
+/**
+ * 10文字のランダム文字列IDを返却
  * @returns {string}
  */
-function getRandomString() {
+function getRandomId() {
   const strings =
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  return Array.from(crypto.getRandomValues(new Uint32Array(10)))
+  const randomString = Array.from(crypto.getRandomValues(new Uint32Array(10)))
     .map((v) => strings[v % strings.length])
     .join('');
+  return randomString;
 }
 
 server.listen(8000, () => {

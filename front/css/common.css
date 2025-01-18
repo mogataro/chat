@@ -23,7 +23,7 @@ html {
 .container__inner {
   height: 100%;
   width: 100%;
-  min-width: 400px;
+  min-width: 360px;
   max-width: 768px;
   margin-inline: auto;
 }
@@ -44,6 +44,12 @@ html {
   min-width: 44px;
   min-height: 44px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin: 0;
+  padding: 0;
   &:hover {
     opacity: 0.8;
   }

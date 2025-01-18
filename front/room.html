@@ -20,12 +20,15 @@
   <div class="room container">
     <div class="room__inner container__inner">
       <header class="room__header">
-        <h1 class="room__title">チャットルーム</h1>
-        <div class="room__info">
-          <span class="room__channel">チャンネル: </span>
-          <span class="room__name">名前: </span>
-          <span class="room__uuid">ID: </span>
+        <div class="room__header-row">
+          <h1 class="room__title">チャットルーム</h1>
+          <a class="button" href="/index.html">退出</a>
         </div>
+        <ul class="room__info">
+          <li class="room__channel">CH:</li>
+          <li class="room__name">名前:</li>
+          <li class="room__uuid">ID:</li>
+        </ul>
       </header>
       <div class="room__message-list" id="chat"></div>
       <form method="GET" class="room__footer" onsubmit="sendMessage();return false;">

@@ -38,31 +38,48 @@ wss.on('connection', (ws) => {
       return;
     }
 
-    if (!json.message) return;
+    if (!json?.message) return;
     json.time = dayjs();
 
-    /** メッセージ送信者のチャンネル */
-    const targetChannel = json?.channel ?? '';
-    /** @type {string[]} メッセージ送信者と同じチャンネルにいるクライアントのuuid配列 */
-    const clientsInChannel = Object.entries(clients)
-      .filter((clientArray) => {
-        if (!targetChannel || !clientArray[1] || !clientArray[1]?.channel) return false;
-        return clientArray[1].channel === targetChannel;
-      })
-      .map((clientArray) => clientArray[1].ws)
-
-    clientsInChannel.forEach((client) => {
-      json.mine = ws === client;
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(json));
-      }
-    });
+    const targetChannel = json.channel;
+    if (!!targetChannel) {
+      sendMessageToChannel(targetChannel, json, ws);
+    }
   });
 
   ws.on('close', () => {
     delete clients[uuid];
   });
 });
+
+/**
+ * 引数のチャンネルにいるユーザーに受信したメッセージを送信
+ * @param {string} targetChannel
+ * @param {ReceivedMessageJson} receivedMessageJson - 受信メッセージ
+ * @param {WebSocket} ws
+ * @returns {undefined}
+ */
+function sendMessageToChannel(targetChannel, receivedMessageJson, ws) {
+  /** @type {string[]} メッセージ送信者と同じチャンネルにいるクライアントのuuid配列 */
+  const clientsInChannel = Object.entries(clients)
+    .filter((clientArray) => {
+      if (!targetChannel || !clientArray[1] || !clientArray[1]?.channel)
+        return false;
+      return clientArray[1].channel === targetChannel;
+    })
+    .map((clientArray) => clientArray[1].ws);
+
+  clientsInChannel.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      /** @type {SendMessageJson} */
+      const sendMessageJson = {
+        ...receivedMessageJson,
+        mine: ws === client,
+      };
+      client.send(JSON.stringify(sendMessageJson));
+    }
+  });
+}
 
 /**
  * ランダム文字列を返却

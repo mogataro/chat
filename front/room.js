@@ -45,10 +45,10 @@ function sendMessage() {
     uuid,
     channel,
     name: userName,
-    message: document.getElementById('msgInput').value,
+    message: document.getElementById('messageInput').value,
   };
   ws.send(JSON.stringify(json));
-  document.getElementById('msgInput').value = '';
+  document.getElementById('messageInput').value = '';
 }
 
 /**

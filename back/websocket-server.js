@@ -60,9 +60,9 @@ wss.on('connection', (ws) => {
     json.channel = json?.channel ? xss(json.channel) : '';
     json.uuid = json?.uuid ? xss(json.uuid) : '';
 
-    // 初回コネクト時にクライアントから送られるメッセージ
-    if (json?.init) {
-      clients[json.uuid].channel = json.channel
+    // 初回コネクト時にクライアントから送られるメッセージの場合
+    if (json?.init === true && json.channel && json.uuid) {
+      clients[json.uuid].channel = json.channel;
       return;
     }
 

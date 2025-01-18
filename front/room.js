@@ -2,7 +2,7 @@ const ws = new WebSocket('ws://localhost:8000');
 
 let uuid = '';
 let channel = '';
-let userName = ''
+let userName = '';
 
 document.addEventListener('DOMContentLoaded', () => {
   const queryParams = new URLSearchParams(window.location.search);
@@ -104,11 +104,11 @@ function createMessage(json) {
 
 /**
  * 引数のクラス名を持つdiv要素を生成
- * @param {string} classNames 
- * @returns 
+ * @param {string} classNames
+ * @returns
  */
 function createDiv(className) {
   const element = document.createElement('div');
-  element.className = className
+  element.className = className;
   return element;
 }

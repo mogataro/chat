@@ -21,7 +21,8 @@ const clients = {}
 // WebSocket接続, ws が接続したクライアント
 wss.on('connection', (ws) => {
   // クライアント識別子
-  const uuid = crypto.randomUUID();
+  const uuid = getRandomString();
+
   clients[uuid] = { ws };
   ws.send(JSON.stringify({ uuid, init: true }));
 
@@ -62,6 +63,18 @@ wss.on('connection', (ws) => {
     delete clients[uuid];
   });
 });
+
+/**
+ * ランダム文字列を返却
+ * @returns {string}
+ */
+function getRandomString() {
+  const strings =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  return Array.from(crypto.getRandomValues(new Uint32Array(10)))
+    .map((v) => strings[v % strings.length])
+    .join('');
+}
 
 server.listen(8000, () => {
   console.log('WebSocket Server is running on port 8000');

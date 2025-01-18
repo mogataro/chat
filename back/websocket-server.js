@@ -4,6 +4,7 @@ const WebSocket = require('ws');
 const http = require('http');
 const crypto = require('crypto');
 const dayjs = require('dayjs');
+const xss = require('xss');
 
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
@@ -41,6 +42,8 @@ wss.on('connection', (ws) => {
   // メッセージ受信処理
   ws.on('message', (data) => {
     const json = JSON.parse(data);
+    json.channel = json?.channel ? xss(json.channel) : '';
+    json.uuid = json?.uuid ? xss(json.uuid) : '';
 
     // 初回コネクト時にクライアントから送られるメッセージ
     if (json?.init) {
